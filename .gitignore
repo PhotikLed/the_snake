@@ -1,0 +1,15 @@
+# Байт-код
+__pycache__/
+*.py[cod]
+
+# Окружение
+.venv/
+venv/
+
+# Тесты
+.pytest_cache/
+.coverage
+
+# IDE
+.idea/
+.vscode/
