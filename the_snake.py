@@ -76,3 +76,65 @@ class Apple(GameObject):
         rect = pygame.Rect(self.position[0], self.position[1], GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(surface, self.body_color, rect)
         pygame.draw.rect(surface, BORDER_COLOR, rect, 1)
+
+
+class Snake(GameObject):
+    """Класс змейки, управляющий движением, ростом и коллизиями."""
+
+    def __init__(self) -> None:
+        """Инициализирует змейку в центре экрана с движением вправо."""
+        super().__init__(
+            position=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
+            body_color=SNAKE_COLOR
+        )
+        self.reset()
+
+    def reset(self) -> None:
+        """Сбрасывает змейку в начальное состояние после столкновения."""
+        self.length = 1
+        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
+        self.direction = RIGHT
+        self.next_direction = None
+        self.last = None
+
+    def get_head_position(self) -> Tuple[int, int]:
+        """Возвращает координаты головы змейки."""
+        return self.positions[0]
+
+    def update_direction(self) -> None:
+        """Обновляет направление движения на следующее заданное игроком."""
+        if self.next_direction:
+            self.direction = self.next_direction
+            self.next_direction = None
+
+    def move(self) -> None:
+        """Обновляет позицию змейки с циклическим переходом сквозь границы экрана."""
+        head_x, head_y = self.get_head_position()
+        dir_x, dir_y = self.direction
+
+        # Телепортация через границы поля
+        new_head = (
+            (head_x + dir_x * GRID_SIZE) % SCREEN_WIDTH,
+            (head_y + dir_y * GRID_SIZE) % SCREEN_HEIGHT
+        )
+
+        self.positions.insert(0, new_head)
+        if len(self.positions) > self.length:
+            self.last = self.positions.pop()
+        else:
+            self.last = None
+
+    def draw(self, surface) -> None:
+        """Отрисовывает тело змейки и стирает след от хвоста."""
+        import pygame
+
+        # Отрисовка головы и тела
+        for position in self.positions:
+            rect = pygame.Rect(position[0], position[1], GRID_SIZE, GRID_SIZE)
+            pygame.draw.rect(surface, self.body_color, rect)
+            pygame.draw.rect(surface, BORDER_COLOR, rect, 1)
+
+        # Затирание хвостового сегмента
+        if self.last:
+            last_rect = pygame.Rect(self.last[0], self.last[1], GRID_SIZE, GRID_SIZE)
+            pygame.draw.rect(surface, BOARD_BACKGROUND_COLOR, last_rect)
