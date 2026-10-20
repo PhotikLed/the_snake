@@ -138,3 +138,65 @@ class Snake(GameObject):
         if self.last:
             last_rect = pygame.Rect(self.last[0], self.last[1], GRID_SIZE, GRID_SIZE)
             pygame.draw.rect(surface, BOARD_BACKGROUND_COLOR, last_rect)
+
+
+def handle_keys(game_object: Snake) -> None:
+    """Обрабатывает события нажатия клавиш для управления направлением змейки."""
+    import pygame
+    import sys
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+            elif event.key in (pygame.K_UP, pygame.K_w) and game_object.direction != DOWN:
+                game_object.next_direction = UP
+            elif event.key in (pygame.K_DOWN, pygame.K_s) and game_object.direction != UP:
+                game_object.next_direction = DOWN
+            elif event.key in (pygame.K_LEFT, pygame.K_a) and game_object.direction != RIGHT:
+                game_object.next_direction = LEFT
+            elif event.key in (pygame.K_RIGHT, pygame.K_d) and game_object.direction != LEFT:
+                game_object.next_direction = RIGHT
+
+
+def main() -> None:
+    """Главный цикл игры: инициализация, обработка логики и отрисовка."""
+    import pygame
+
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption('Изгиб Питона')
+    clock = pygame.time.Clock()
+
+    screen.fill(BOARD_BACKGROUND_COLOR)
+
+    snake = Snake()
+    apple = Apple(snake.positions)
+
+    while True:
+        clock.tick(SPEED)
+        handle_keys(snake)
+        snake.update_direction()
+        snake.move()
+
+        # Поедание яблока
+        if snake.get_head_position() == apple.position:
+            snake.length += 1
+            apple.randomize_position(snake.positions)
+        # Столкновение змейки с собой (самоукус)
+        elif snake.get_head_position() in snake.positions[2:]:
+            snake.reset()
+            screen.fill(BOARD_BACKGROUND_COLOR)
+            apple.randomize_position(snake.positions)
+
+        apple.draw(screen)
+        snake.draw(screen)
+        pygame.display.update()
+
+
+if __name__ == '__main__':
+    main()
