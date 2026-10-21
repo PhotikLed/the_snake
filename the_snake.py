@@ -1,9 +1,13 @@
 """Игра «Изгиб Питона» (Змейка на ООП).
 
-Финальный проект спринта «ООП и другие полезные вещи» (Яндекс Практикум).
+Финальный проект спринта «ООП и другие полезные вещи» (Яндекс Практикум / УрФУ).
 """
 
-from typing import Tuple, Optional
+import random
+import sys
+from typing import Tuple, Optional, List
+
+import pygame
 
 # Константы игрового поля
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -42,23 +46,27 @@ class GameObject:
             self.position = position
         self.body_color = body_color
 
-    def draw(self) -> None:
-        """Абстрактный метод отрисовки объекта. Переопределяется в подклассах."""
+    def draw(self, surface: pygame.Surface) -> None:
+        """Абстрактный метод отрисовки объекта на поверхности."""
         pass
 
 
 class Apple(GameObject):
     """Класс яблока на игровом поле."""
 
-    def __init__(self, occupied_positions: Optional[list] = None) -> None:
+    def __init__(
+        self,
+        occupied_positions: Optional[List[Tuple[int, int]]] = None
+    ) -> None:
         """Инициализирует яблоко красным цветом и задает случайную позицию."""
         super().__init__(body_color=APPLE_COLOR)
         self.randomize_position(occupied_positions)
 
-    def randomize_position(self, occupied_positions: Optional[list] = None) -> None:
+    def randomize_position(
+        self,
+        occupied_positions: Optional[List[Tuple[int, int]]] = None
+    ) -> None:
         """Устанавливает случайное положение яблока вне тела змейки."""
-        import random
-
         occupied = set(occupied_positions) if occupied_positions else set()
         while True:
             new_pos = (
@@ -69,10 +77,8 @@ class Apple(GameObject):
                 self.position = new_pos
                 break
 
-    def draw(self, surface) -> None:
+    def draw(self, surface: pygame.Surface) -> None:
         """Отрисовывает яблоко на игровой поверхности."""
-        import pygame
-
         rect = pygame.Rect(self.position[0], self.position[1], GRID_SIZE, GRID_SIZE)
         pygame.draw.rect(surface, self.body_color, rect)
         pygame.draw.rect(surface, BORDER_COLOR, rect, 1)
@@ -87,6 +93,11 @@ class Snake(GameObject):
             position=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
             body_color=SNAKE_COLOR
         )
+        self.length = 1
+        self.positions: List[Tuple[int, int]] = []
+        self.direction = RIGHT
+        self.next_direction: Optional[Tuple[int, int]] = None
+        self.last: Optional[Tuple[int, int]] = None
         self.reset()
 
     def reset(self) -> None:
@@ -124,10 +135,8 @@ class Snake(GameObject):
         else:
             self.last = None
 
-    def draw(self, surface) -> None:
+    def draw(self, surface: pygame.Surface) -> None:
         """Отрисовывает тело змейки и стирает след от хвоста."""
-        import pygame
-
         # Отрисовка головы и тела
         for position in self.positions:
             rect = pygame.Rect(position[0], position[1], GRID_SIZE, GRID_SIZE)
@@ -142,9 +151,6 @@ class Snake(GameObject):
 
 def handle_keys(game_object: Snake) -> None:
     """Обрабатывает события нажатия клавиш для управления направлением змейки."""
-    import pygame
-    import sys
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -153,20 +159,30 @@ def handle_keys(game_object: Snake) -> None:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit()
-            elif event.key in (pygame.K_UP, pygame.K_w) and game_object.direction != DOWN:
+            elif (
+                event.key in (pygame.K_UP, pygame.K_w)
+                and game_object.direction != DOWN
+            ):
                 game_object.next_direction = UP
-            elif event.key in (pygame.K_DOWN, pygame.K_s) and game_object.direction != UP:
+            elif (
+                event.key in (pygame.K_DOWN, pygame.K_s)
+                and game_object.direction != UP
+            ):
                 game_object.next_direction = DOWN
-            elif event.key in (pygame.K_LEFT, pygame.K_a) and game_object.direction != RIGHT:
+            elif (
+                event.key in (pygame.K_LEFT, pygame.K_a)
+                and game_object.direction != RIGHT
+            ):
                 game_object.next_direction = LEFT
-            elif event.key in (pygame.K_RIGHT, pygame.K_d) and game_object.direction != LEFT:
+            elif (
+                event.key in (pygame.K_RIGHT, pygame.K_d)
+                and game_object.direction != LEFT
+            ):
                 game_object.next_direction = RIGHT
 
 
 def main() -> None:
     """Главный цикл игры: инициализация, обработка логики и отрисовка."""
-    import pygame
-
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption('Изгиб Питона')
